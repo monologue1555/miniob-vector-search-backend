@@ -5,7 +5,7 @@ SUCCESS
 create table t_vec_empty(emb vector());
 SQL_SYNTAX > FAILED TO PARSE SQL
 create table t_vec_too_big(emb vector(16384));
-SQL_SYNTAX > FAILED TO PARSE SQL
+FAILURE
 
 VECTOR SCHEMA AND INSERT
 
