@@ -145,11 +145,77 @@ Release 构建：
 bash build.sh release --make -j"$(nproc)"
 ```
 
-运行 observer：
+运行 observer (CLI 交互模式)：
 
 ```bash
 cd build_debug
 ./bin/observer -f ../etc/observer.ini -P cli
+```
+
+---
+
+## 运行向量可视化控制台 Web UI
+
+本项目已集成极具美感的 Web 可视化控制台（包含 SQL 终端、向量数据渲染与 2D ECharts 可视化、高性能 K-NN 检索评测对比等）。控制台的运行由以下三个部分协同工作组成：
+
+### 1. 启动 MiniOB Observer 数据库实例 (WSL2 / Docker)
+需要使用 `plain` 文本协议模式启动 MiniOB 实例，以便与后端的 TCP 客户端通信：
+```bash
+cd build_debug
+# 监听 6789 端口，并以 plain 协议启动
+./bin/observer -f ../etc/observer.ini -p 6789 -P plain
+```
+
+### 2. 启动 Flask 网关后端 (WSL2 / Docker)
+网关后端负责将前端发出的 HTTP 请求打包成 TCP 数据包与 MiniOB 通信：
+1. 进入 backend 目录：
+   ```bash
+   cd backend
+   ```
+2. 安装依赖（主要为 `Flask` 与 `Flask-CORS`）：
+   ```bash
+   pip install flask flask-cors
+   ```
+3. 启动 Flask 后端：
+   ```bash
+   python app.py
+   ```
+   后端将在 `http://localhost:5000` 监听。
+
+### 3. 启动 React Vite 前端控制台 (Windows 主机)
+提供现代化的极简暗黑风可视化操作界面：
+1. 进入 frontend 目录：
+   ```bash
+   cd frontend
+   ```
+2. 安装依赖：
+   ```bash
+   npm install
+   ```
+3. 启动开发服务器：
+   ```bash
+   npm run dev
+   ```
+4. 在浏览器中打开本地预览地址：
+   `http://localhost:5173/`
+
+### 4. 向量测试 SQL 参考
+进入 Web 控制台后，您可以在 SQL Terminal 中执行以下语句来验证向量检索功能：
+```sql
+-- 创建 3 维向量表
+create table t_vec(id int, emb vector(3), tag char);
+
+-- 插入向量数据
+insert into t_vec values(1, string_to_vector('[1.0, 0.0, 0.0]'), 'a');
+insert into t_vec values(2, string_to_vector('[3.0, 0.0, 0.0]'), 'b');
+insert into t_vec values(3, string_to_vector('[6.0, 0.0, 0.0]'), 'c');
+insert into t_vec values(4, string_to_vector('[-2.0, 0.0, 0.0]'), 'd');
+
+-- 创建 IVF_Flat 索引
+create vector index idx_vec on t_vec(emb) with (distance=euclidean, type=ivfflat, lists=2, probes=1);
+
+-- 向量检索并计算距离排序
+select id, distance(emb, string_to_vector('[0,0,0]'), euclidean) as dis from t_vec order by dis asc limit 3;
 ```
 
 ## 测试与验收

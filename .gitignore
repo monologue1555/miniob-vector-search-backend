@@ -30,3 +30,13 @@ src/observer/sql/parser/lex_sql.cpp
 src/observer/sql/parser/lex_sql.h
 src/observer/sql/parser/yacc_sql.cpp
 src/observer/sql/parser/yacc_sql.hpp
+
+# Frontend & Backend Web Interface
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.production.local
+frontend/.env.development.local
+backend/__pycache__/
+backend/*.pyc
+
